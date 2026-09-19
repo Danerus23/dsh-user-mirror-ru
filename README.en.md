@@ -29,15 +29,26 @@ Fix 1 is a plain upstream bug and is worth reporting upstream by anyone who uses
   `storageDomain` and `webServer` services and fails the boot on a headless profile.
 * `git` and `pnpm` — `dsh plugin` is a thin forwarder to `pnpm` run in the profile directory.
 
-Fork and upstream are the **same package name** (`dsh-user-mirror`), so the fork replaces the
-npm version rather than living next to it. Never install both: they register the same routes
-and the same tools.
+Fork and upstream are **not** the same package name any more. Upstream moved to the scoped
+name `@dsh-plugins/dsh-user-mirror` (published there: 0.6.3); this fork deliberately keeps the
+old, unscoped name `dsh-user-mirror`, so it is a drop-in replacement for the *old* package.
+If you have the new scoped package installed, remove it first — otherwise you end up with two
+copies of the same plugin registering the same routes and tools:
+
+```powershell
+dsh plugin --profile web remove @dsh-plugins/dsh-user-mirror
+```
+
+The fork is based on the last unscoped release, **0.6.1** (upstream's host half `index.js` is
+byte-identical across 0.6.1, 0.6.3 and the unreleased 0.7.0, so both fixes still apply).
 
 ## Install
 
 ```powershell
 dsh plugin --profile web add github:Danerus23/dsh-user-mirror-ru
 ```
+
+Worth pinning a version: `github:Danerus23/dsh-user-mirror-ru#v0.6.1-ru.1`.
 
 Then restart the `web` profile (the plugin is read at boot) and hard-refresh the browser page
 (`Ctrl+Shift+R`).
@@ -54,7 +65,7 @@ pwsh -File .\tools\check-server.ps1 -Url http://127.0.0.1:3080
 
 ```powershell
 dsh plugin --profile web remove dsh-user-mirror
-dsh plugin --profile web add dsh-user-mirror      # back to the npm version
+dsh plugin --profile web add @dsh-plugins/dsh-user-mirror   # current upstream name
 ```
 
 Memory records live in the DSH storage domain `dsh_mirror`, not inside the package, so they

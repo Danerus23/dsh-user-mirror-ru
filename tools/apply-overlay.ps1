@@ -66,7 +66,13 @@ $dshHome = Get-DshHome
 $target = Join-Path $dshHome "profiles\$Profile\node_modules\dsh-user-mirror"
 
 if (-not (Test-Path $target)) {
-    throw "Плагин не найден: $target`nСначала установите его: dsh plugin --profile $Profile add dsh-user-mirror"
+    throw @"
+Плагин не найден: $target
+Этот способ работает только со старым пакетом апстрима (dsh-user-mirror) — нашим тёзкой.
+Сначала установите его: dsh plugin --profile $Profile add dsh-user-mirror
+Если у вас новый пакет апстрима (@dsh-plugins/dsh-user-mirror), способ не подходит —
+ставьте форк из git: dsh plugin --profile $Profile add github:Danerus23/dsh-user-mirror-ru
+"@
 }
 
 $backupRoot = Join-Path $root 'backups'

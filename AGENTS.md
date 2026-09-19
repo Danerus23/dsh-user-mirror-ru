@@ -17,7 +17,7 @@ dsh plugin --profile web add github:Danerus23/dsh-user-mirror-ru
 | Профиль | `dsh plugin --profile web why dsh-user-mirror` | ошибка «not found» — нормально, если плагина нет; главное, что профиль `web` существует (**только web**: нужны сервисы `storageDomain` и `webServer`) |
 | pnpm | `pnpm --version` | есть в PATH — `dsh plugin` без него отвечает `pnpm not found on PATH` |
 | git | `git --version` | есть, если ставите из git |
-| Нет второй копии | `${env:USERPROFILE}\.dsh\profiles\web\node_modules\dsh-user-mirror` | либо пусто, либо это и есть форк. Двух копий (npm + git) быть не должно: они регистрируют одни маршруты и инструменты |
+| Нет второй копии | `${env:USERPROFILE}\.dsh\profiles\web\node_modules\dsh-user-mirror` и `...\node_modules\@dsh-plugins\dsh-user-mirror` | либо пусто, либо это и есть форк. **Проверять оба пути**: апстрим переехал на имя `@dsh-plugins/dsh-user-mirror`, наш форк называется `dsh-user-mirror`, и вместе они дают две копии плагина — одни маршруты и инструменты. Новый пакет апстрима, если стоит, убрать: `dsh plugin --profile web remove @dsh-plugins/dsh-user-mirror` |
 
 Установка идёт в профиль `web`, поэтому **не запускайте её на живом сервере, который держит
 текущую сессию**, если можете этого избежать: проверять удобнее на отдельном `DSH_HOME` и
@@ -66,7 +66,7 @@ pwsh -File .\tools\check-server.ps1 -Url http://127.0.0.1:3080
 
 ```powershell
 dsh plugin --profile web remove dsh-user-mirror   # плагина нет
-dsh plugin --profile web add dsh-user-mirror      # вернуться к апстриму из npm
+dsh plugin --profile web add @dsh-plugins/dsh-user-mirror   # вернуться к апстриму (текущее имя)
 ```
 
 Если правили файлы вручную (накат поверх npm-пакета), откат делает сам скрипт:
@@ -113,7 +113,9 @@ pwsh -File .\tools\check-upstream.ps1
 ноль новых иероглифов — переносить нечего); в репозитории апстрима готовится **0.7.0**
 с переделанной вкладкой «Память» («портрет» вместо списка). **Решение владельца: ждём
 публикации 0.7.0 в npm и делаем один переезд; имя нашего пакета остаётся
-`dsh-user-mirror` — форк остаётся drop-in заменой, `bundles` профиля не меняются.**
+`dsh-user-mirror` — для тех, у кого стоит старый пакет апстрима, это drop-in замена,
+`bundles` профиля не меняются. У кого стоит новый (`@dsh-plugins/dsh-user-mirror`) —
+его надо сначала удалить, иначе выйдут две копии плагина.**
 
 Порядок переезда:
 
