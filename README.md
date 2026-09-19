@@ -370,7 +370,11 @@ pwsh -File .\tools\check-upstream.ps1
   и под PowerShell 7.6, и под Windows PowerShell 5.1);
 * git-установка переживает установку постороннего пакета в профиль и `dsh plugin update` —
   в отличие от наката файлов поверх npm-пакета, который затирается обеими операциями;
-* `tools/verify-structure.mjs` и `tools/test-matcher.mjs` — зелёные.
+* `tools/verify-structure.mjs` и `tools/test-matcher.mjs` — зелёные, причём **из свежего
+  клона с GitHub**, а не только в рабочем каталоге разработчика: `tools/link-deps.ps1` ставит
+  junction-ы на зависимости профиля, после чего `tools/test-matcher.mjs` проходит целиком;
+* `tools/check-upstream.ps1` на состоянии 19.09.2026 показывает: под новым именем апстрима
+  опубликована 0.6.3 без нового текста для перевода, а 0.7.0 в npm ещё не выложена.
 
 ---
 
