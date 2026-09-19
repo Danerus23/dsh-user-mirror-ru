@@ -75,9 +75,22 @@ survive uninstalling the plugin.
 
 The repository root *is* the package. `index.js` is the shipped host half, built from
 `index.translation.js` by `tools/build-index.mjs`; `client.js` and `cordis.patch.yml` are
-translated copies; `upstream/0.6.1/` keeps pristine upstream files for comparison. Everything
-under `tools/` is development and verification tooling (`node tools/verify-structure.mjs`,
-`node tools/test-matcher.mjs`).
+translated copies; `upstream/0.6.1/` keeps pristine upstream files for comparison.
+
+Tooling under `tools/`:
+
+* `node tools/verify-structure.mjs` — translation vs upstream skeleton, and the shipped
+  `index.js` vs translation + fixes;
+* `node tools/test-matcher.mjs` — 22 behavioural tests of the topic matcher;
+* `pwsh -File tools/link-deps.ps1` — junctions to the profile's dependencies, needed to run the
+  tests from a clone (the profile has to be populated first);
+* `pwsh -File tools/check-server.ps1 -Url http://127.0.0.1:3080` — checks a *running* server:
+  plugin routes and the language of the category labels (it prints counts only, never the
+  memory texts);
+* `pwsh -File tools/check-upstream.ps1` — checks whether upstream has released something new
+  under either npm name and how much text a rebase would need to translate;
+* `pwsh -File tools/apply-overlay.ps1` — fallback install that overlays the translation on top
+  of an already installed npm package (with a backup and automatic rollback).
 
 ## License
 

@@ -14,7 +14,7 @@ dsh plugin --profile web add github:Danerus23/dsh-user-mirror-ru
 
 | Что | Как проверить | Что должно быть |
 |---|---|---|
-| Профиль | `dsh plugin --profile web why dsh-user-mirror` | ошибка «not found» — нормально, если плагина нет; главное, что профиль `web` существует (**только web**: нужны сервисы `storageDomain` и `webServer`) |
+| Профиль | `dsh plugin --profile web why dsh-user-mirror` | **Пустой вывод и код 0** — нормально, если плагина нет; главное, что профиль `web` существует (**только web**: нужны сервисы `storageDomain` и `webServer`). Если профиля нет, первая же команда `dsh plugin` создаст его сама. Установленный пакет отвечает строками `dsh-user-mirror@<версия>` и `Found 1 version of dsh-user-mirror` |
 | pnpm | `pnpm --version` | есть в PATH — `dsh plugin` без него отвечает `pnpm not found on PATH` |
 | git | `git --version` | есть, если ставите из git |
 | Нет второй копии | `${env:USERPROFILE}\.dsh\profiles\web\node_modules\dsh-user-mirror` и `...\node_modules\@dsh-plugins\dsh-user-mirror` | либо пусто, либо это и есть форк. **Проверять оба пути**: апстрим переехал на имя `@dsh-plugins/dsh-user-mirror`, наш форк называется `dsh-user-mirror`, и вместе они дают две копии плагина — одни маршруты и инструменты. Новый пакет апстрима, если стоит, убрать: `dsh plugin --profile web remove @dsh-plugins/dsh-user-mirror` |
@@ -24,30 +24,35 @@ dsh plugin --profile web add github:Danerus23/dsh-user-mirror-ru
 свободном порту (3081–3099), например:
 
 ```powershell
-$env:DSH_HOME = "$env:TEMP\dsh-verify"
-dsh plugin --profile web add github:Danerus23/dsh-user-mirror-ru
-dsh web --port 3097            # отдельный сервер; в браузере http://127.0.0.1:3097
+$env:DSH_HOME = "$env:TEMP\dsh-verify"      # по умолчанию DSH_HOME = %USERPROFILE%\.dsh
+dsh plugin --profile web add github:Danerus23/dsh-user-mirror-ru   # профиль создастся сам
+dsh web --port 3097 --no-open               # адрес для браузера (с токеном) печатает сам dsh web
+# голый http://127.0.0.1:3097 без токена отвечает 401 — это защита, а не поломка
 ```
 
 ## Что считается успехом
 
 1. `dsh plugin --profile web add ...` завершился кодом 0, в выводе pnpm — установка
-   `dsh-user-mirror`, а в `~/.dsh/profiles/web/package.json` появилась запись
+   `dsh-user-mirror`, а в `$DSH_HOME\profiles\web\package.json` (по умолчанию
+   `%USERPROFILE%\.dsh\profiles\web\package.json`) появилась запись
    `"dsh-user-mirror": "github:Danerus23/dsh-user-mirror-ru"` и имя в `dsh.profile.bundles`.
 2. Профиль поднимается без `pending (waiting for services: storageDomain, webServer)`.
-3. Живой сервер отдаёт русские подписи категорий:
+3. **Свой** тестовый сервер отдаёт русские подписи категорий — проверяем именно свой порт,
+   а не боевой:
 
 ```powershell
-pwsh -File .\tools\check-server.ps1 -Url http://127.0.0.1:3080
+pwsh -File .\tools\check-server.ps1 -Url http://127.0.0.1:3097
 # ожидаемо: preferences -> 200, vendor/ai-orb -> 200, GET /forget -> 405,
 #           подписи категорий по-русски, «ИТОГ: всё чисто»
 ```
 
-Маршруты плагина отвечают без авторизации, так что проверка не требует токена сессии.
+Проверять боевой сервер (`-Url http://127.0.0.1:3080`) — отдельное осознанное действие:
+там работает человек, и скрипт напечатает число его записей памяти. Маршруты плагина
+отвечают без авторизации, так что проверка обходится без токена сессии.
 Если скрипта под рукой нет, достаточно одного запроса:
 
 ```powershell
-(Invoke-WebRequest http://127.0.0.1:3080/dsh-mirror/preferences -UseBasicParsing).Content
+(Invoke-WebRequest http://127.0.0.1:3097/dsh-mirror/preferences -UseBasicParsing).Content
 # в kinds должны быть «принцип/компромисс…», а не «原则/取舍…»
 ```
 
@@ -55,7 +60,8 @@ pwsh -File .\tools\check-server.ps1 -Url http://127.0.0.1:3080
 
 | Симптом | Причина и что делать |
 |---|---|
-| Подписи во вкладке «Память» китайские, хотя установка прошла | Порядок проверки: (1) страница из кеша — `Ctrl+Shift+R`; (2) профиль не перезапускался — плагин читается **на старте**; (3) в `node_modules\dsh-user-mirror\client.js` действительно лежит перевод (искать `предпочтения, выученные из цепочки`) |
+| Подписи во вкладке «Память» китайские, хотя установка прошла | Порядок проверки: (1) страница из кеша — `Ctrl+Shift+R`; (2) профиль не перезапускался — плагин читается **на старте**: `patchReload: live` в профиле перезагружает только патчи-конфиги, код плагина — нет; (3) в `node_modules\dsh-user-mirror\client.js` действительно лежит перевод (искать `предпочтения, выученные из цепочки`) |
+| После `remove` запущенный сервер продолжает отвечать 200 на маршруты плагина | Норма: модуль уже загружен в память процесса. Из `dependencies` и из `dsh.profile.bundles` запись уходит сразу (проверено), а вкладка исчезнет только после перезапуска профиля |
 | Загрузка падает с `pending (waiting for services: storageDomain, webServer)` | Плагин поставлен не в `web`-профиль. Убрать из headless-профиля |
 | Вкладки «Память» нет, ошибок нет | Проверьте, что имя пакета есть в `dsh.profile.bundles`. Его дописывает `dsh plugin` при установке; после ручной правки `package.json` — не допишется |
 | `dsh plugin add` печатает про `allowBuilds` в `pnpm-workspace.yaml` | Так pnpm блокирует build-скрипты git-зависимостей. У этого пакета **нет** `prepare`/build-скриптов, поэтому сообщение означает, что упало что-то другое: читайте вывод pnpm выше |
@@ -90,6 +96,11 @@ node tools/test-matcher.mjs         # 22 поведенческие провер
 ```powershell
 pwsh -File .\tools\link-deps.ps1    # junction-ы на @deepseek-ai/*, zod, ai-orb
 ```
+
+Профиль к этому моменту должен быть уже наполнен (любой `dsh web` или `dsh plugin add`):
+скрипт берёт пакеты из `profiles\node_modules` и `profiles\web\node_modules`, а на пустом
+профиле связывать нечего — он скажет «нет источника для …»; если ссылки уже стоят, скажет
+«уже есть» и ничего не сделает.
 
 Тесты импортируют `index.js`, поэтому junction-ы должны указывать на **те же** копии пакетов,
 что использует DSH: две копии `dsh-tools` ломают инструментальный слой целиком.

@@ -23,6 +23,7 @@ param(
 )
 
 $script:failed = 0
+$script:unreachable = $false
 
 function Test-Endpoint {
     param(
@@ -38,7 +39,11 @@ function Test-Endpoint {
     } catch {
         $status = [int]$_.Exception.Response.StatusCode.value__
         $body = ''
-        if ($status -eq 0) { $status = -1 }
+        if ($status -eq 0) {
+            # Ответа нет вовсе: сервер не слушает порт, другой порт или адрес.
+            $status = -1
+            $script:unreachable = $true
+        }
     }
     $ok = $ExpectStatus -contains $status
     if (-not $ok) { $script:failed++ }
@@ -48,6 +53,7 @@ function Test-Endpoint {
 }
 
 Write-Host "Проверка $Url`n"
+Write-Host "(проверяющий скрипт печатает только количество записей и подписи категорий, текстов памяти не выводит)`n"
 
 $prefs = Test-Endpoint -Path '/dsh-mirror/preferences' -ExpectStatus 200 -Note 'список памяти'
 $null = Test-Endpoint -Path '/dsh-mirror/vendor/ai-orb/index.js' -ExpectStatus 200 -Note 'ai-orb из node_modules профиля'
@@ -77,6 +83,12 @@ if ($prefs) {
 }
 
 Write-Host ''
+if ($script:unreachable) {
+    Write-Host "Сервер не отвечает по адресу $Url — возможно, он не запущен, слушает другой порт" -ForegroundColor Yellow
+    Write-Host "или указан другой адрес. Проверьте порт у запущенного сервера и повторите с -Url." -ForegroundColor Yellow
+    Write-Host "Порт по умолчанию у DSH — 3080; для своей проверки берите отдельный (например, 3097)." -ForegroundColor Yellow
+    Write-Host ''
+}
 if ($script:failed -gt 0) {
     Write-Host "ИТОГ: проблем $script:failed" -ForegroundColor Red
     exit 1
