@@ -1,0 +1,9 @@
+# Нормализация переводов строк: в репозитории — LF, в рабочем каталоге у .ps1 — CRLF
+# (Windows PowerShell 5.1 ждёт CRLF). BOM у .ps1 с кириллицей git не трогает — он часть файла.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+
+# Двоичное — не трогать
+*.png binary
+*.jpg binary
+*.zip binary

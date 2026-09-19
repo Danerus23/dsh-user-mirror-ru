@@ -1,0 +1,8 @@
+# Патч bundle для dsh-mirror: вставляет плагин изучения предпочтений в web-профиль.
+#
+# Потребляется загрузчиком dsh как dsh.bundle.patch. insert ссылается на этот пакет (dsh-user-mirror),
+# загрузчик разрешает его из node_modules профиля и загружает как плагин Cordis.
+# Без config = берутся значения по умолчанию из Config плагина (см. index.js).
+- insert:
+    - id: dsh-mirror
+      name: dsh-user-mirror

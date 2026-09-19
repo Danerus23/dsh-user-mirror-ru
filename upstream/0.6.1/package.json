@@ -1,0 +1,55 @@
+{
+  "name": "dsh-user-mirror",
+  "version": "0.6.1",
+  "description": "Let the AI know you. \u8ba9\u6a21\u578b\u4e3b\u52a8\u8bb0\u4e0b\u4f60\u7684\u5224\u65ad\u4f9d\u636e\uff08\u539f\u5219/\u7ea2\u7ebf/\u5de5\u4f5c\u65b9\u5f0f\uff09\uff0c\u8de8\u4f1a\u8bdd\u590d\u7528 \u2014\u2014 \u6709\u5bb9\u91cf\u3001\u4f1a\u9057\u5fd8\u3001\u6bcf\u6761\u90fd\u8bf4\u5f97\u51fa\u4e3a\u4ec0\u4e48\u8bb0\u3002",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": {
+      "default": "./index.js"
+    },
+    "./client": {
+      "default": "./client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webkubor/dsh-mirror.git"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "memory",
+    "preference",
+    "personalization"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ],
+      "platform": "web"
+    }
+  },
+  "dependencies": {
+    "ai-orb": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-storage-domain": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-system-prompt": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-tools": "^0.1.1-rc.2",
+    "@deepseek-ai/schemastery": "^3.18.1",
+    "zod": "^4.4.3"
+  }
+}

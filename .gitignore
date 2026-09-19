@@ -1,0 +1,11 @@
+# Зависимости (ставит pnpm; в репозитории им не место)
+node_modules/
+
+# Резервные копии, снятые tools/apply-overlay.ps1 перед накатом
+backups/
+
+# Служебное
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
